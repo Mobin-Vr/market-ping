@@ -1,0 +1,6 @@
+# Copy to .dev.vars for local development. .dev.vars is gitignored - never commit it.
+TELEGRAM_BOT_TOKEN=
+WEBHOOK_SECRET=
+NERKH_API_KEY=
+NAVASAN_API_KEY=
+ADMIN_IDS=

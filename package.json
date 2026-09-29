@@ -1,0 +1,31 @@
+{
+  "name": "market-ping",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Telegram bot broadcasting Iranian market prices every hour (09:00-21:00 Tehran) on Cloudflare Workers, D1, Queues and one Cron Trigger.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "cf-typegen": "wrangler types",
+    "dev": "wrangler dev --test-scheduled",
+    "deploy": "wrangler deploy",
+    "deploy:dry": "wrangler deploy --dry-run --outdir dist",
+    "db:migrate:local": "wrangler d1 migrations apply market-ping --local",
+    "db:migrate:remote": "wrangler d1 migrations apply market-ping --remote",
+    "preview": "node scripts/build-preview.mjs && node .wrangler/preview.mjs"
+  },
+  "dependencies": {
+    "jalaali-js": "^2.0.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260929.1",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.2",
+    "wrangler": "^4.143.0"
+  }
+}
