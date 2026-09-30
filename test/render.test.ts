@@ -25,7 +25,7 @@ function preBlocks(message: string): string[][] {
 }
 
 function allowedTagsOnly(message: string): boolean {
-  const allowed = new Set(["<b>", "</b>", "<i>", "</i>", "<pre>", "</pre>"]);
+  const allowed = new Set(["<b>", "</b>", "<i>", "</i>", "<pre>", "</pre>", "<blockquote>", "</blockquote>"]);
   const tags = message.match(/<\/?[a-zA-Z]+>/g) ?? [];
   return tags.every((tag) => allowed.has(tag));
 }
@@ -34,31 +34,29 @@ describe("renderMessage", () => {
   it("renders the documented skeleton with right-aligned columns", () => {
     const message = renderMessage(snapshot(fixtureMetrics()));
     expect(message).toContain("📈 <b>Market Ping</b>");
-    expect(message).toContain("3Shanbe, 7 Mehr 1405 | 10:34 Tehran");
-    expect(message).toContain("💱 <b>Rates</b>");
-    expect(message).toContain("🥇 <b>Gold (per gram)</b>");
-    expect(message).toContain("🪙 <b>Coins</b>");
-    expect(message).toContain("<i>T = Toman | Source: Nerkh, Megaweb</i>");
+    expect(message).toContain("3Shanbe, 7 Mehr 1405 | 10:34");
+    expect(message).toContain("💱 <b>Currency</b>");
+    expect(message).toContain("🥇 <b>Gold &amp; Coins</b>");
+    expect(message).toContain("₿ <b>Crypto</b>");
+    expect(message).not.toContain("T = Toman");
     expect(allowedTagsOnly(message)).toBe(true);
 
     const blocks = preBlocks(message);
     expect(blocks).toHaveLength(3);
     for (const lines of blocks) {
-      const widths = new Set(lines.map((line) => line.length));
+      const widths = new Set(lines.filter((line) => line.length > 0).map((line) => line.length));
       expect(widths.size).toBe(1);
     }
-    expect(blocks[0].some((line) => line.trimEnd().endsWith("244,800 T"))).toBe(true);
-    expect(blocks[0].some((line) => line.trimEnd().endsWith("$83,989"))).toBe(true);
-    expect(blocks[0].some((line) => line.trimEnd().endsWith("$4,142"))).toBe(true);
-    expect(blocks[1]).toHaveLength(1);
-    expect(blocks[1][0].trimEnd().endsWith("24,835,000 T")).toBe(true);
-    expect(blocks[2]).toHaveLength(4);
-    expect(blocks[2]).toEqual([
-      "Rob Seke     68,500,000 T",
-      "Nim Seke    127,800,000 T",
-      "Tamam Seke  243,500,000 T",
-      "Emami       250,100,000 T",
-    ]);
+    expect(blocks[0]).toHaveLength(1);
+    expect(blocks[0][0].trimEnd().endsWith("244,800 T")).toBe(true);
+    // Gold & Coins: three groups separated by two truly empty lines, one width for all rows.
+    expect(blocks[1]).toHaveLength(8);
+    expect(blocks[1][1]).toBe("");
+    expect(blocks[1][3]).toBe("");
+    expect(blocks[1][0].trimEnd().endsWith("$4,142")).toBe(true);
+    expect(blocks[1][2].trimEnd().endsWith("24,835,000 T")).toBe(true);
+    expect(blocks[2]).toHaveLength(1);
+    expect(blocks[2][0].trimEnd().endsWith("$83,989")).toBe(true);
   });
 
   it("prints N/A without breaking the column widths", () => {
@@ -68,7 +66,7 @@ describe("renderMessage", () => {
     expect(message).toContain("N/A");
     const blocks = preBlocks(message);
     for (const lines of blocks) {
-      expect(new Set(lines.map((line) => line.length)).size).toBe(1);
+      expect(new Set(lines.filter((line) => line.length > 0).map((line) => line.length)).size).toBe(1);
     }
   });
 
@@ -85,8 +83,8 @@ describe("renderMessage", () => {
     const message = renderMessage(snapshot(metrics, ["nerkh", "navasan", "megaweb"]));
     expect(message).toContain("244,000 T*");
     expect(message).toContain("* USD: last update 6 Mehr 1405 20:58");
-    expect(countDisplayLines(message)).toBe(19);
-    expect(countNonEmptyLines(message)).toBe(15);
+    expect(countDisplayLines(message)).toBe(21);
+    expect(countNonEmptyLines(message)).toBe(14);
   });
 
   it("marks the approximate value with ~ and adds the USDT footnote", () => {
@@ -102,10 +100,10 @@ describe("renderMessage", () => {
     const message = renderMessage(snapshot(metrics, ["zipodo", "megaweb"]));
     expect(message).toContain("~249,950 T");
     expect(message).toContain("~ via USDT rate");
-    expect(countDisplayLines(message)).toBe(19);
+    expect(countDisplayLines(message)).toBe(21);
   });
 
-  it("keeps the message inside the agreed budget (2 footnotes, 20 display lines)", () => {
+  it("keeps the message inside the agreed budget (2 footnotes, 26 display lines)", () => {
     const metrics = fixtureMetrics();
     metrics.usd_toman = {
       metric: "usd_toman",
@@ -122,20 +120,21 @@ describe("renderMessage", () => {
     expect(message).toContain("* Stale: ");
     expect(message).toContain("+1 more");
     expect(message).toContain("~ via USDT rate");
-    expect(countDisplayLines(message)).toBeLessThanOrEqual(20);
-    expect(countNonEmptyLines(message)).toBeLessThanOrEqual(17);
+    expect(countDisplayLines(message)).toBeLessThanOrEqual(26);
+    expect(countNonEmptyLines(message)).toBeLessThanOrEqual(19);
   });
 
-  it("omits the source clause when no source was used", () => {
-    const metrics = fixtureMetrics();
-    const message = renderMessage(snapshot(metrics, []));
-    expect(message).toContain("<i>T = Toman</i>");
+  it("has no source footer at all, even when sources were used", () => {
+    const message = renderMessage(snapshot(fixtureMetrics(), ["nerkh", "megaweb"]));
+    expect(message).not.toContain("T = Toman");
+    expect(message).not.toContain("Source:");
+    expect(message).not.toContain("<i>");
   });
 
-  it("keeps the base message at 14 non-empty lines", () => {
+  it("keeps the base message at 13 non-empty lines", () => {
     const message = renderMessage(snapshot(fixtureMetrics()));
-    expect(countNonEmptyLines(message)).toBe(14);
-    expect(countDisplayLines(message)).toBe(18);
+    expect(countNonEmptyLines(message)).toBe(13);
+    expect(countDisplayLines(message)).toBe(20);
   });
 });
 
@@ -146,12 +145,15 @@ describe("shared label order in the message", () => {
     });
   };
 
-  it("renders every section in the shared METRIC_LABELS order", () => {
-    const blocks = preBlocks(renderMessage(snapshot(fixtureMetrics())));
+  it("renders every category in CATEGORY_ORDER with the agreed row order", () => {
+    const message = renderMessage(snapshot(fixtureMetrics()));
+    expect(message.indexOf("💱 <b>Currency</b>")).toBeLessThan(message.indexOf("🥇 <b>Gold &amp; Coins</b>"));
+    expect(message.indexOf("🥇 <b>Gold &amp; Coins</b>")).toBeLessThan(message.indexOf("₿ <b>Crypto</b>"));
+    const blocks = preBlocks(message);
     expect(blocks).toHaveLength(3);
-    expectOrder(blocks[0], ["USD", "Bitcoin", "Gold Ounce"]);
-    expectOrder(blocks[1], ["Tala Garam"]);
-    expectOrder(blocks[2], ["Rob Seke", "Nim Seke", "Tamam Seke", "Emami"]);
+    expectOrder(blocks[0], ["USD"]);
+    expectOrder(blocks[1].filter((line) => line.length > 0), ["Gold Ounce", "Tala Garam", "Rob Seke", "Nim Seke", "Tamam Seke", "Emami"]);
+    expectOrder(blocks[2], ["Bitcoin"]);
     expect(METRIC_LABELS.map((row) => row.label)).toEqual([
       "USD",
       "Bitcoin",
@@ -176,7 +178,7 @@ describe("shared label order in the message", () => {
     expect(message).toContain("* Bitcoin: last update 6 Mehr 1405 20:58");
     expect(message).toContain("~249,950 T");
     expect(message).toContain("~ via USDT rate");
-    expect(countDisplayLines(message)).toBeLessThanOrEqual(20);
-    expect(countNonEmptyLines(message)).toBeLessThanOrEqual(17);
+    expect(countDisplayLines(message)).toBeLessThanOrEqual(26);
+    expect(countNonEmptyLines(message)).toBeLessThanOrEqual(19);
   });
 });

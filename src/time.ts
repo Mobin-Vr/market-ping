@@ -144,16 +144,16 @@ function tehranWallToEpochSec(
 }
 
 /**
- * e.g. "3Shanbe, 7 Mehr 1405 | 09:00 Tehran" (en, default) or
- * "سه‌شنبه، 7 مهر 1405 | 09:00 تهران" (fa). Digits stay ASCII in both.
+ * e.g. "3Shanbe, 7 Mehr 1405 | 09:00" (en, default) or
+ * "سه‌شنبه، 7 مهر 1405 | 09:00" (fa). Digits stay ASCII in both. No city word.
  */
 export function formatTehranHeader(epochSec: number, lang: Lang = 'en'): string {
    const p = tehranParts(epochSec);
    const clock = `${pad2(p.hour)}:${pad2(p.minute)}`;
    if (lang === 'fa') {
-      return `${WEEKDAYS_FA[p.weekday]}، ${p.jd} ${JALALI_MONTHS_FA[p.jm - 1]} ${p.jy} | ${clock} تهران`;
+      return `${WEEKDAYS_FA[p.weekday]}، ${p.jd} ${JALALI_MONTHS_FA[p.jm - 1]} ${p.jy} | ${clock}`;
    }
-   return `${PERSIAN_WEEKDAYS[p.weekday]}, ${p.jd} ${JALALI_MONTHS[p.jm - 1]} ${p.jy} | ${clock} Tehran`;
+   return `${PERSIAN_WEEKDAYS[p.weekday]}, ${p.jd} ${JALALI_MONTHS[p.jm - 1]} ${p.jy} | ${clock}`;
 }
 
 /** "6 Mehr 1405 20:58" (en) / "6 مهر 1405 20:58" (fa) - used in stale footnotes. */

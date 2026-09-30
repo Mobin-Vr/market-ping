@@ -25,7 +25,7 @@ max_batch_size = 1
 max_concurrency = 2
 max_retries = 3
 
-# The ONLY cron trigger: 05:30..17:30 UTC == 09:00..21:00 Tehran (13 runs/day).
+# The ONLY cron trigger: 05:30..17:30 UTC == 09:00..21:00 (13 runs/day).
 [triggers]
 crons = ["30 5-17 * * *"]
 

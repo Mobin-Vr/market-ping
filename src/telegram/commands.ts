@@ -120,6 +120,10 @@ export async function handleMessageUpdate(env: Env, msg: TgMessage): Promise<voi
 
    try {
       switch (command) {
+         case '/start':
+         case '/menu':
+            await sendWelcome(env, chatId, lang);
+            return;
          case '/help':
             await tgSendMessage(env.TELEGRAM_BOT_TOKEN, chatId, strings.help);
             return;

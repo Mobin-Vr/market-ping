@@ -6,6 +6,7 @@
  */
 import { renderHealthPanel } from "../src/admin/health";
 import { adminPanelKeyboard, renderAdminPanel } from "../src/admin/panel";
+import { t } from "../src/i18n";
 import { countDisplayLines, countNonEmptyLines, renderMessage } from "../src/render/message";
 import { resolveMetrics } from "../src/resolve/resolver";
 import { pickUsdtHelper, type FetchAllResult } from "../src/sources/fetchAll";
@@ -48,8 +49,8 @@ function rule(title: string): void {
 }
 
 rule("1) Hourly message, English (HTML source, exactly what Telegram receives)");
-function showMessage(lang: "fa" | "en", metrics: typeof resolved.metrics, sources: typeof resolved.usedSources): void {
-  const message = renderMessage(
+function renderFor(lang: "fa" | "en", metrics: typeof resolved.metrics, sources: typeof resolved.usedSources): string {
+  return renderMessage(
     {
       hourKey: "2026-09-29-10",
       createdAt: NOW,
@@ -58,6 +59,9 @@ function showMessage(lang: "fa" | "en", metrics: typeof resolved.metrics, source
     },
     lang,
   );
+}
+function showMessage(lang: "fa" | "en", metrics: typeof resolved.metrics, sources: typeof resolved.usedSources): void {
+  const message = renderFor(lang, metrics, sources);
   console.log(message);
   console.log(`\n[${lang}] [${countDisplayLines(message)} display lines, ${countNonEmptyLines(message)} non-empty]`);
 }
@@ -66,6 +70,13 @@ showMessage("en", resolved.metrics, resolved.usedSources);
 
 rule("1b) Hourly message, Persian");
 showMessage("fa", resolved.metrics, resolved.usedSources);
+
+rule("1c) On-demand (/price): the same stored message plus the Last update line");
+for (const lang of ["en", "fa"] as const) {
+  const onDemand = `${renderFor(lang, resolved.metrics, resolved.usedSources)}\n${t(lang).lastUpdateLine(NOW, NOW + 7 * 60)}`;
+  console.log(onDemand);
+  console.log(`\n[${lang} on-demand] [${countDisplayLines(onDemand)} display lines, ${countNonEmptyLines(onDemand)} non-empty]\n`);
+}
 
 rule("2) Same message with a STALE usd_toman (navasan) and the approximate marker");
 const staleMetrics = { ...resolved.metrics };

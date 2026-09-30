@@ -27,6 +27,12 @@ export const METRIC_LABELS: readonly MetricLabel[] = [
 /**
  * Section membership of the hourly message. Labels and ordering always come from
  * METRIC_LABELS, so a section keeps the shared order.
+ *
+ * NOTE: the user message groups metrics as Currency -> Gold & Coins -> Crypto
+ * (CURRENCY_METRICS / GOLD_COINS_METRICS / CRYPTO_METRICS, driven by
+ * CATEGORY_ORDER in src/config.ts). The admin API-health "Resolved" block
+ * intentionally keeps the flat METRIC_LABELS order - it is diagnostics, not the
+ * user layout - so the two orders diverge on purpose.
  */
 export const RATE_METRICS: readonly MetricName[] = ["usd_toman", "btc_usd", "ounce_usd"];
 export const GOLD_METRICS: readonly MetricName[] = ["gold18_toman"];
@@ -36,6 +42,20 @@ export const COIN_METRICS: readonly MetricName[] = [
   "coin_bahar_toman",
   "coin_emami_toman",
 ];
+
+/** Currency category: USD only. */
+export const CURRENCY_METRICS: readonly MetricName[] = ["usd_toman"];
+/** Gold & Coins category: ounce, gram + four coins, in this row order. */
+export const GOLD_COINS_METRICS: readonly MetricName[] = [
+  "ounce_usd",
+  "gold18_toman",
+  "coin_quarter_toman",
+  "coin_half_toman",
+  "coin_bahar_toman",
+  "coin_emami_toman",
+];
+/** Crypto category: Bitcoin only. */
+export const CRYPTO_METRICS: readonly MetricName[] = ["btc_usd"];
 
 /** Rows of one section, in the shared METRIC_LABELS order. */
 export function rowsFor(metrics: readonly MetricName[]): readonly MetricLabel[] {

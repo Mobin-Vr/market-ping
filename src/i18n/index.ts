@@ -1,16 +1,16 @@
-import { DEFAULT_LANG, LANGS, type Lang, type MetricName, type SourceName } from '../types';
+import { DEFAULT_LANG, LANGS, RLM, type Lang, type MetricName } from '../types';
 import { en } from './en';
 import { fa } from './fa';
 
-export { DEFAULT_LANG, LANGS };
-export type { Lang, MetricName, SourceName };
+export { DEFAULT_LANG, LANGS, RLM };
+export type { Lang, MetricName };
 
 /** Metric labels, units and footnote wording of one rendered message. */
 export interface MessageStrings {
    title: string;
-   headingRates: string;
-   headingGold: string;
-   headingCoins: string;
+   headingCurrency: string;
+   headingGoldCoins: string;
+   headingCrypto: string;
    metricLabels: Record<MetricName, string>;
    /** Value shown for a metric that could not be resolved, e.g. "N/A" / "ناموجود". */
    na: string;
@@ -18,16 +18,13 @@ export interface MessageStrings {
    tomanSuffix: string;
    /** Formats the digits of a USD value, e.g. "$4,142" / "4,142 دلار". */
    formatUsdValue(digits: string): string;
-   sourceNames: Record<SourceName, string>;
    /** "* USD: last update 6 Mehr 1405 20:58" */
    staleOne(label: string, whenShortDate: string): string;
    /** "* Stale: USD (…), Bitcoin (…) +1 more" */
    staleMany(items: readonly string[], extra: number): string;
    /** "~ via USDT rate" */
    approximateNote: string;
-   /** "T = Toman | Source: Nerkh, Megaweb" */
-   footer(sources: readonly SourceName[]): string;
-   /** "3Shanbe, 7 Mehr 1405 | 09:00 Tehran" */
+   /** "3Shanbe, 7 Mehr 1405 | 09:00" */
    header(epochSec: number): string;
    /** "6 Mehr 1405 20:58" */
    shortDate(epochSec: number): string;
@@ -68,6 +65,9 @@ export interface TextBundle {
    welcome: string;
    joined: string;
    left: string;
+   joinedToast: string;
+   leftToast: string;
+   priceSentToast: string;
    paused: string;
    cooldown: string;
    priceNotReady: string;
@@ -76,11 +76,11 @@ export interface TextBundle {
    languageChangedToast: string;
    /** Shown when a handler fails. Never contains internal error details. */
    genericError: string;
-   /** "Next update: today at 14:00 Tehran." */
+   /** "Next update: today at 14:00." */
    nextUpdateText(epochSec: number): string;
    /** "just now" / "12 min ago" / "3 h ago" */
    ageAgoText(ageSec: number): string;
-   /** "🕒 Last update: 17:00 Tehran (12 min ago)" */
+   /** "🕒 Last update: 17:00 (12 min ago)" */
    lastUpdateLine(createdAtEpochSec: number, nowEpochSec: number): string;
 
    /* admin (rendered with t('en') only) */
@@ -98,6 +98,9 @@ export interface TextBundle {
    adminButtonRefresh: string;
    adminButtonYes: string;
    adminButtonCancel: string;
+   adminToggledToast: string;
+   adminRefreshedToast: string;
+   adminHealthToast: string;
    adminSendConfirmText(subscribers: number): string;
    adminBroadcastQueuedText(recipients: number, chunks: number): string;
    /** Admin alert when every source failed and the broadcast was skipped. */

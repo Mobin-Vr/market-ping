@@ -23,6 +23,13 @@ export type Lang = 'fa' | 'en';
 export const LANGS: readonly Lang[] = ['fa', 'en'];
 export const DEFAULT_LANG: Lang = 'fa';
 
+/**
+ * Right-to-left mark (U+200F), prefixed to every Persian text line (RTL safety). It lives in
+ * this leaf module so both the language bundles and the renderer can share one definition
+ * without an import cycle; src/i18n and src/render re-export it.
+ */
+export const RLM = '\u200F';
+
 /** A single normalised value from one source (all Iranian prices are Toman). */
 export interface Candidate {
    metric: MetricName;

@@ -11,26 +11,28 @@ import { editOrSend, tgAnswerCallbackQuery, tgSendMessage } from './api';
 import { leaveQueue, sendPriceOnDemand, switchLanguage, userLang } from './commands';
 import { subscribedKeyboard } from './keyboards';
 
-/** Join flow: subscribe, edit the panel, then add prices or the next update time. */
-async function joinQueue(env: Env, chatId: number, lang: Lang, messageId: number | null): Promise<void> {
+/** Join flow: subscribe, edit the panel to the subscribed state, then send prices. */
+/* Returns the short localized toast (the panel edit replaces the long joined text). */
+async function joinQueue(env: Env, chatId: number, lang: Lang, messageId: number | null): Promise<string> {
    const token = env.TELEGRAM_BOT_TOKEN;
    const strings = t(lang);
    await setSubscribed(env.DB, chatId, true);
-   await editOrSend(token, chatId, messageId, strings.joined, subscribedKeyboard(lang));
+   await editOrSend(token, chatId, messageId, strings.welcome, subscribedKeyboard(lang));
 
    if (!(await isServiceEnabled(env.DB))) {
       await tgSendMessage(token, chatId, strings.paused);
-      return;
+      return strings.joinedToast;
    }
    const now = nowSec();
    if (isWithinSendHours(now)) {
       const snapshot = await getSnapshotForUser(env, now, lang);
       if (snapshot !== null) {
          await tgSendMessage(token, chatId, snapshot.html);
-         return;
+         return strings.joinedToast;
       }
    }
    await tgSendMessage(token, chatId, strings.nextUpdateText(now));
+   return strings.joinedToast;
 }
 
 /** Entry point for every callback_query update. Always answers the callback. */
@@ -54,11 +56,13 @@ export async function handleCallbackQueryUpdate(env: Env, query: TgCallbackQuery
       }
       let toast: string | null = null;
       if (data === CALLBACK_DATA.join) {
-         await joinQueue(env, chatId, lang, messageId);
+         toast = await joinQueue(env, chatId, lang, messageId);
       } else if (data === CALLBACK_DATA.leave) {
          await leaveQueue(env, chatId, messageId);
+         toast = t(lang).leftToast;
       } else if (data === CALLBACK_DATA.price) {
          await sendPriceOnDemand(env, chatId);
+         toast = t(lang).priceSentToast;
       } else if (data === CALLBACK_DATA.langFa || data === CALLBACK_DATA.langEn) {
          const next: Lang = data === CALLBACK_DATA.langFa ? 'fa' : 'en';
          await switchLanguage(env, chatId, next, messageId);

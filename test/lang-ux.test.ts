@@ -215,6 +215,20 @@ describe("per-language user messages", () => {
     expect(network.telegramCalls[0].text).toBe(t("en").welcome);
   });
 
+  it("serves the welcome menu again on /menu", async () => {
+    const network = stubNetwork();
+    const state: StoreState = { lang: "fa", known: true };
+    const fake = createFakeD1(routes(state));
+
+    await handleMessageUpdate(fakeEnv({ DB: fake.db }), message("/menu"));
+
+    const call = network.telegramCalls[0];
+    expect(call.text).toBe(fa.welcome);
+    expect(call.keyboard).toContain(CALLBACK_DATA.langEn);
+    expect(call.keyboard).toContain(CALLBACK_DATA.join);
+    expect(call.keyboard).toContain(CALLBACK_DATA.price);
+  });
+
   it("uses the localized paused text when the service is OFF", async () => {
     const network = stubNetwork();
     const state: StoreState = { lang: "fa", known: true };

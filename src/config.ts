@@ -1,4 +1,4 @@
-import type { SourceName } from "./types";
+import type { Lang, MetricName, SourceName } from "./types";
 
 /** Tehran is UTC+03:30 all year (no DST). Defined once and used everywhere. */
 export const TEHRAN_OFFSET_MIN = 210;
@@ -39,7 +39,36 @@ export const ON_DEMAND_MAX_AGE_HOURS = 24;
 export const ON_DEMAND_REFRESH_MIN_GAP_SEC = 600;
 
 /** Hard cap for one rendered message, blank lines included (see src/render/message.ts). */
-export const MESSAGE_MAX_DISPLAY_LINES = 20;
+export const MESSAGE_MAX_DISPLAY_LINES = 26;
+
+/** Price-message categories in display order. Reorder to change the layout. */
+export type PriceCategory = "currency" | "goldCoins" | "crypto";
+export const CATEGORY_ORDER: readonly PriceCategory[] = ["currency", "goldCoins", "crypto"];
+
+/**
+ * Persian message style: "blockquote" (default, one quote per category) or
+ * "pre" (monospace fallback, same rows inside <pre> blocks).
+ */
+export const FA_LAYOUT: "blockquote" | "pre" = "blockquote";
+
+/**
+ * Row groups inside the Gold & Coins block, separated by exactly one blank line.
+ * Both languages use the same grouping: ounce, gold18, then the four coins.
+ * Right-alignment still uses one common width across the whole block, so the blank
+ * separator lines never affect the columns. Reorder or regroup here only.
+ */
+export const GOLD_COIN_ROW_GROUPS: Record<Lang, readonly (readonly MetricName[])[]> = {
+  en: [
+    ["ounce_usd"],
+    ["gold18_toman"],
+    ["coin_quarter_toman", "coin_half_toman", "coin_bahar_toman", "coin_emami_toman"],
+  ],
+  fa: [
+    ["ounce_usd"],
+    ["gold18_toman"],
+    ["coin_quarter_toman", "coin_half_toman", "coin_bahar_toman", "coin_emami_toman"],
+  ],
+};
 
 /** BTC (USD) source order: megaweb is the only source that returns USD directly. */
 export const BTC_SOURCE_ORDER: readonly SourceName[] = ["megaweb", "nerkh", "navasan"];
